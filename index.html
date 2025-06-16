@@ -4,12 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Om Namo Narayanah</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f0e6;
+            color: #4d2600;
+            padding-top: 40px;
+        }
+        h1 {
+            color: #b30000;
+        }
+        #temple img {
+            max-width: 300px;
+            border: 5px solid #b30000;
+        }
     </style>
 </head>
 <body>
     <h1>Om Namo Narayanah</h1>
+    <div id="temple">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Ranganatha_Swamy_Vishnu.jpg" alt="Lord Ranganatha">
+    </div>
+    <svg id="mantra" width="500" height="500"></svg>
     <p>A simple website dedicated to Lord Vishnu.</p>
+    <script>
+        const svg = d3.select('#mantra');
+        const centerX = +svg.attr('width') / 2;
+        const centerY = +svg.attr('height') / 2;
+        const radius = 200;
+        const repetitions = 12;
+        const mantra = 'Om Namo Narayanah';
+
+        const angles = d3.range(0, 2 * Math.PI, 2 * Math.PI / repetitions);
+
+        svg.selectAll('text')
+            .data(angles)
+            .enter()
+            .append('text')
+            .attr('x', d => centerX + radius * Math.cos(d))
+            .attr('y', d => centerY + radius * Math.sin(d))
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#b30000')
+            .text(mantra)
+            .on('mouseover', function() {
+                d3.select(this).attr('fill', '#ff6600');
+            })
+            .on('mouseout', function() {
+                d3.select(this).attr('fill', '#b30000');
+            });
+    </script>
 </body>
 </html>
