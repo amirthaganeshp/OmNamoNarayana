@@ -16,16 +16,56 @@
         h1 {
             color: #b30000;
         }
-        #temple img {
+        /* #temple img {
             max-width: 300px;
             border: 5px solid #b30000;
+        } */ /* Rule moved to #ranganatha-svg image */
+
+        #ranganatha-svg, #symbols-svg, #mantra { /* Added #mantra here too for consistency */
+            display: block;
+            margin: 20px auto;
+        }
+
+        svg text {
+            font-family: 'Georgia', serif;
+            font-size: 14px;
+            fill: #333333; /* Dark grey for SVG text */
+        }
+
+        /* Overriding fill for specific mantra text, if needed, or adjust in JS */
+        /* For example, if mantra text needs to keep its original color: */
+        #mantra text {
+            fill: #b30000; /* Keep original mantra color */
+        }
+        /* Text in symbols-svg should use the new default unless overridden in JS */
+        /* The D3 code sets fill for Thirunamam, Sankha, Chakra text, which will take precedence */
+
+
+        #temple, #symbols-container {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: #fff8f0; /* Lighter shade for contrast */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow */
+        }
+
+        #ranganatha-svg image {
+            max-width: 100%;
+            height: auto;
+            border: 3px solid #b30000; /* Border for the Ranganatha image */
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <h1>Om Namo Narayanah</h1>
     <div id="temple">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Ranganatha_Swamy_Vishnu.jpg" alt="Lord Ranganatha">
+        <svg id="ranganatha-svg" width="300" height="auto">
+            <image xlink:href="https://upload.wikimedia.org/wikipedia/commons/9/9e/Ranganatha_Swamy_Vishnu.jpg" x="0" y="0" width="300" height="auto"></image>
+        </svg>
+    </div>
+    <div id="symbols-container">
+        <svg id="symbols-svg" width="500" height="100"></svg>
     </div>
     <svg id="mantra" width="500" height="500"></svg>
     <p>A simple website dedicated to Lord Vishnu.</p>
@@ -54,6 +94,137 @@
             .on('mouseout', function() {
                 d3.select(this).attr('fill', '#b30000');
             });
+
+        // Zoom effect for Ranganatha image
+        const ranganathaSvg = d3.select('#ranganatha-svg');
+        const ranganathaImage = ranganathaSvg.select('image');
+
+        const originalWidth = +ranganathaImage.attr('width');
+        // Assuming height="auto" will work. If not, we might need to set an explicit original height
+        // and scale it proportionally. For now, we'll only change width and x/y.
+        // const originalHeight = +ranganathaImage.attr('height'); // This would be NaN if height="auto"
+        const originalX = +ranganathaImage.attr('x');
+        const originalY = +ranganathaImage.attr('y');
+
+        ranganathaImage.on('mouseover', function() {
+            const newWidth = originalWidth * 1.1;
+            const deltaWidth = newWidth - originalWidth;
+
+            d3.select(this)
+                .attr('width', newWidth)
+                // .attr('height', originalHeight * 1.1) // If we wanted to scale height too
+                .attr('x', originalX - deltaWidth / 2);
+                // .attr('y', originalY - (originalHeight * 0.1) / 2); // If we wanted to scale height too
+        })
+        .on('mouseout', function() {
+            d3.select(this)
+                .attr('width', originalWidth)
+                // .attr('height', originalHeight) // If we wanted to scale height too
+                .attr('x', originalX)
+                // .attr('y', originalY); // If we wanted to scale height too
+        });
+
+        // Draw Thirunamam symbol
+        const symbolsSvg = d3.select('#symbols-svg');
+        const symbolStrokeWidth = 4;
+        const symbolHoverStrokeWidth = 6;
+
+        const pathsData = [
+            { d: "M 230 10 Q 220 50 230 90", stroke: "white", id: "left-curve" }, // Adjusted X to center a bit more
+            { d: "M 270 10 Q 280 50 270 90", stroke: "white", id: "right-curve" }, // Adjusted X to center a bit more
+            { d: "M 250 10 L 250 70", stroke: "red", id: "center-line" }
+        ];
+
+        pathsData.forEach(pathInfo => {
+            symbolsSvg.append('path')
+                .attr('d', pathInfo.d)
+                .attr('stroke', pathInfo.stroke)
+                .attr('stroke-width', symbolStrokeWidth)
+                .attr('fill', 'none')
+                .attr('id', pathInfo.id) // Added id for individual selection if needed later
+                .on('mouseover', function() {
+                    d3.select(this).attr('stroke-width', symbolHoverStrokeWidth);
+                })
+                .on('mouseout', function() {
+                    d3.select(this).attr('stroke-width', symbolStrokeWidth);
+                });
+        });
+
+        symbolsSvg.append('text')
+            .attr('x', 250) // Centered with the symbol
+            .attr('y', 95) // Below the symbol
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#4d2600') // Using body text color
+            .text('Thirunamam');
+
+        // Add Sankha and Chakra symbols
+        const sankhaImageUrl = "https://upload.wikimedia.org/wikipedia/commons/1/11/Shankha.svg";
+        const chakraImageUrl = "https://upload.wikimedia.org/wikipedia/commons/archive/7/7d/20210509001143%21Sudarshana_Chakra.svg";
+
+        const symbolImageSize = { width: 50, height: 50 };
+        const symbolImageHoverScale = 1.1;
+
+        // Sankha
+        const sankhaGroup = symbolsSvg.append("g").attr("id", "sankha-group");
+        const sankhaImage = sankhaGroup.append('image')
+            .attr('xlink:href', sankhaImageUrl)
+            .attr('x', 150)
+            .attr('y', 25)
+            .attr('width', symbolImageSize.width)
+            .attr('height', symbolImageSize.height);
+
+        sankhaGroup.append('text')
+            .attr('x', 150 + symbolImageSize.width / 2)
+            .attr('y', 95)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#4d2600')
+            .text('Sankha');
+
+        addZoomEffect(sankhaImage, symbolImageSize.width, symbolImageSize.height, symbolImageHoverScale);
+
+        // Chakra
+        const chakraGroup = symbolsSvg.append("g").attr("id", "chakra-group");
+        const chakraImage = chakraGroup.append('image')
+            .attr('xlink:href', chakraImageUrl)
+            .attr('x', 300)
+            .attr('y', 25)
+            .attr('width', symbolImageSize.width)
+            .attr('height', symbolImageSize.height);
+
+        chakraGroup.append('text')
+            .attr('x', 300 + symbolImageSize.width / 2)
+            .attr('y', 95)
+            .attr('text-anchor', 'middle')
+            .attr('fill', '#4d2600')
+            .text('Chakra');
+
+        addZoomEffect(chakraImage, symbolImageSize.width, symbolImageSize.height, symbolImageHoverScale);
+
+        // Helper function for zoom effect on images
+        function addZoomEffect(selection, originalWidth, originalHeight, scaleFactor) {
+            const originalImgX = +selection.attr('x');
+            const originalImgY = +selection.attr('y');
+
+            selection.on('mouseover', function() {
+                const newWidth = originalWidth * scaleFactor;
+                const newHeight = originalHeight * scaleFactor;
+                const deltaWidth = newWidth - originalWidth;
+                const deltaHeight = newHeight - originalHeight;
+
+                d3.select(this)
+                    .attr('width', newWidth)
+                    .attr('height', newHeight)
+                    .attr('x', originalImgX - deltaWidth / 2)
+                    .attr('y', originalImgY - deltaHeight / 2);
+            })
+            .on('mouseout', function() {
+                d3.select(this)
+                    .attr('width', originalWidth)
+                    .attr('height', originalHeight)
+                    .attr('x', originalImgX)
+                    .attr('y', originalImgY);
+            });
+        }
     </script>
 </body>
 </html>
